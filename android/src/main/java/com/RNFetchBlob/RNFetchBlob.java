@@ -19,6 +19,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 
+import com.facebook.react.modules.network.NetworkingModule.CustomClientBuilder;
+
 // Cookies
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.network.ForwardingCookieHandler;
@@ -39,6 +41,7 @@ import static com.RNFetchBlob.RNFetchBlobConst.GET_CONTENT_INTENT;
 public class RNFetchBlob extends ReactContextBaseJavaModule {
 
     private final OkHttpClient mClient;
+    private CustomClientBuilder ccb = null;
 
     static ReactApplicationContext RCTContext;
     private static LinkedBlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
@@ -48,6 +51,14 @@ public class RNFetchBlob extends ReactContextBaseJavaModule {
     private static boolean ActionViewVisible = false;
     private static SparseArray<Promise> promiseTable = new SparseArray<>();
 
+    private static RNFetchBlob instance;
+ 
+    public static synchronized RNFetchBlob getInstance(ReactApplicationContext reactContext) {
+        if (instance == null)
+            instance = new RNFetchBlob(reactContext);
+        return instance;
+    }
+ 
     public RNFetchBlob(ReactApplicationContext reactContext) {
 
         super(reactContext);
@@ -410,5 +421,17 @@ public class RNFetchBlob extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getSDCardApplicationDir(Promise promise) {
         RNFetchBlobFS.getSDCardApplicationDir(this.getReactApplicationContext(), promise);
+    }
+
+    public void addCustomClientBuilder(CustomClientBuilder ccb) {
+        this.ccb = ccb;
+    }
+
+    public static OkHttpClient.Builder applyCustomClientBuilder(OkHttpClient.Builder builder) {
+        if (RNFetchBlob.instance != null && RNFetchBlob.instance.ccb != null) {
+            RNFetchBlob.instance.ccb.apply(builder);
+        }
+
+        return builder;
     }
 }
