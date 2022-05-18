@@ -455,7 +455,9 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
             clientBuilder.followSslRedirects(options.followRedirect);
             clientBuilder.retryOnConnectionFailure(true);
 
-            OkHttpClient client = enableTls12OnPreLollipop(clientBuilder).build();
+            enableTls12OnPreLollipop(clientBuilder);
+
+            OkHttpClient client = RNFetchBlob.applyCustomClientBuilder(clientBuilder).build();
 
             Call call =  client.newCall(req);
             taskTable.put(taskId, call);
